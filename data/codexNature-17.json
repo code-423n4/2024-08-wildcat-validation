@@ -1,0 +1,8 @@
+{
+  "contest": 434,
+  "handle": "codexNature",
+  "risk": "2",
+  "title": "Unsafe casting from `uint256` to `uint16` could cause `originalReserveRatioBips` to become much smaller than intended",
+  "issueId": 17,
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/17"
+}
