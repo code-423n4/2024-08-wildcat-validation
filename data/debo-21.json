@@ -1,0 +1,8 @@
+{
+  "contest": 434,
+  "handle": "debo",
+  "risk": "3",
+  "title": "WildcatArchController contract has Dependence on Predictable Environment Variable in Inherited completeOwnershipHandover Function",
+  "issueId": 21,
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/21"
+}
