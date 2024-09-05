@@ -1,0 +1,8 @@
+{
+  "contest": 434,
+  "handle": "codexNature",
+  "risk": "2",
+  "title": "Unsafe casting from uint256 to uint32 could cause setCredential function in LenderStatus library to give wrong lastApprovalTimestamp value/Overflow.",
+  "issueId": 24,
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/24"
+}
