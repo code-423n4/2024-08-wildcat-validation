@@ -1,0 +1,8 @@
+{
+  "contest": 434,
+  "handle": "ETHworker",
+  "risk": "3",
+  "title": "totalSupply Overestimates Circulating Supply",
+  "issueId": 23,
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/23"
+}
