@@ -1,0 +1,8 @@
+{
+  "contest": 434,
+  "handle": "la-arana-inteligente",
+  "risk": "3",
+  "title": "Calldata Underflow in inline assembly block Leading to Memory Corruption, Denial of Service(DoS) and potential Reentrancy Risks.",
+  "issueId": 31,
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/31"
+}
