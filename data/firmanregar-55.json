@@ -1,0 +1,8 @@
+{
+  "contest": 434,
+  "handle": "firmanregar",
+  "risk": "3",
+  "title": "Unsafe casting in '_calculateTemporaryReserveRatioBips()' function from 'uint256' to 'uint16' leads to loss of precision and data",
+  "issueId": 55,
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/55"
+}
