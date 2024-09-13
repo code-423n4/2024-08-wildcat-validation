@@ -30,6 +30,8 @@ The final calculation of liquidityRequired aggregates the precomputed values, en
 
 
 
+
+
 #Gas optimisation for the hasPendingExpiredBatch function
 
 ####github code reference(permalink)
@@ -47,14 +49,43 @@ function hasPendingExpiredBatch(MarketState memory state) internal view returns 
 using solidity in this context is simple, performs direct comparisons, and involves minimal operations. For such straightforward logic, the Solidity compiler handles optimization effectively, and inline assembly is unlikely to offer significant improvements in comparison to using assembly
 
 
-##Gas optimisation for functions like state.normaliszAmount
+
+
+##Gas optimisation for functions like state.normaliseAmount
 
 ### optimisation
 Inlining small functions directly into the functions where they are used can reduce the overhead of function calls, especially if they are simple and frequently used.
-For example, instead of having state.normalizeAmount as a separate function, you could inline its logic since it’s only used in a couple of places.
+For example, instead of havig state.normalizeAmount as a separate function, you could inline its logic since it’s only used in a couple of places.
 
 ####github code reference(permalink)
 https://github.com/code-423n4/2024-08-wildcat/blob/fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1/src/libraries/MarketState.sol#L66
 
  ###IN SUMMMARY
 my suuggestion reduces function call overhead, leading to function call costs and gas savings.it also increases execution efficiency.
+
+
+
+
+
+#GAS OPTIMISATION FOR FUNCTIONS IN THE rc/wildcatSanctionsEscrow.sol
+
+
+##Gas optimisation for the canRealeaseEscrow 
+
+####github code reference(permalink)
+ https://github.com/code-423n4/2024-08-wildcat/blob/fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1/src/WildcatSanctionsEscrow.sol#L26-28
+
+### optimisation
+the canReleaseEscrow function calls the isSanctioned method from the IwildSanctionSentinel contract, and does not explictly store the result of the call, if cnaRealeased escrow is called multiple times within the same transactionit will make multiple external contract calls. i have shown a way to optimise the function below by fetching and storing the result of the isSanctioned call in a local variable, sanctioned.
+
+
+###my code sample
+function canReleaseEscrow() public view override returns (bool) {
+    // Fetch and cache the result of the external call to avoid repeated calls
+    bool sanctioned = IWildcatSanctionsSentinel(sentinel).isSanctioned(borrower, account);
+    return !sanctioned;
+}
+
+
+###IN SUMMARY
+in the event that canReleaseEscrow is called multiple times, gas usage can be optimised by caching the results of external calls to avoid repeated calls 
