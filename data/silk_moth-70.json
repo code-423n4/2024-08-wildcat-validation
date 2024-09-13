@@ -1,0 +1,8 @@
+{
+  "contest": 434,
+  "handle": "silk_moth",
+  "risk": "3",
+  "title": "Denial of Service (DoS) Vulnerability in grantRoles Function",
+  "issueId": 70,
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/70"
+}
