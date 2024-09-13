@@ -1,0 +1,8 @@
+{
+  "contest": 434,
+  "handle": "Daniel526",
+  "risk": "2",
+  "title": "Address Collision and Stale Initialization Code Vulnerability in Market Deployment Using `LibStoredInitCode`",
+  "issueId": 66,
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/66"
+}
