@@ -59,6 +59,24 @@ contract BlockTimestampManipulationTest is Test {
     }
 }
 ```
+Log results
+```sol
+2024-08-wildcat % forge test -vvvv --match-contract BlockTimestampManipulationTest
+[⠊] Compiling...
+No files changed, compilation skipped
+
+Ran 1 test for src/access/BlockTimestampManipulation.t.sol:BlockTimestampManipulationTest
+[PASS] testBlockTimestampManipulation() (gas: 25223)
+Traces:
+  [25223] BlockTimestampManipulationTest::testBlockTimestampManipulation()
+    ├─ [0] VM::warp(11)
+    │   └─ ← [Return] 
+    └─ ← [Stop] 
+
+Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 1.50ms (379.33µs CPU time)
+
+Ran 1 test suite in 126.48ms (1.50ms CPU time): 1 tests passed, 0 failed, 0 skipped (1 total tests)
+```
 
 ## Tools Used
 Manual review & foundry test.
