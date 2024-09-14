@@ -1,0 +1,8 @@
+{
+  "contest": 434,
+  "handle": "debo",
+  "risk": "3",
+  "title": "AccessControlHooks has Unchecked Call Return Value in _tryGetCredential the staticcall return value is not checked properly",
+  "issueId": 88,
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/88"
+}
