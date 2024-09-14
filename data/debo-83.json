@@ -1,0 +1,8 @@
+{
+  "contest": 434,
+  "handle": "debo",
+  "risk": "2",
+  "title": "WildcatSanctionsSentinel has Transaction Order Dependence Sanction Overrides in overrideSanction function",
+  "issueId": 83,
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/83"
+}
