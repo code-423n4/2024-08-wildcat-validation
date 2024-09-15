@@ -1,0 +1,8 @@
+{
+  "contest": 434,
+  "handle": "Daniel526",
+  "risk": "2",
+  "title": "`_executeWithdrawal` function does'nt verify whether the `accountAddress` has already withdrawn the full amount owed",
+  "issueId": 108,
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/108"
+}
