@@ -1,0 +1,8 @@
+{
+  "contest": 434,
+  "handle": "14Kattel",
+  "risk": "2",
+  "title": "mproper Handling of Constructor Arguments in LibStoredInitCode Library Leads to Incorrect Contract Initialization",
+  "issueId": 117,
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/117"
+}
