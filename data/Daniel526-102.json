@@ -1,0 +1,8 @@
+{
+  "contest": 434,
+  "handle": "Daniel526",
+  "risk": "2",
+  "title": "Compatibility Issue Due to Unsupported PUSH0 Opcode",
+  "issueId": 102,
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/102"
+}
