@@ -1,0 +1,8 @@
+{
+  "contest": 434,
+  "handle": "deadrxsezzz",
+  "risk": "2",
+  "title": "Borrower can fully bypass the `onRepay` hook",
+  "issueId": 124,
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/124"
+}
