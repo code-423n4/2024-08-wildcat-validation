@@ -1,0 +1,8 @@
+{
+  "contest": 434,
+  "handle": "Daniel526",
+  "risk": "2",
+  "title": "Inconsistent Use of `block.timestamp` in Multi-chain Deployments",
+  "issueId": 101,
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/101"
+}
