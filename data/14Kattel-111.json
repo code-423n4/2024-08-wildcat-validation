@@ -1,0 +1,8 @@
+{
+  "contest": 434,
+  "handle": "14Kattel",
+  "risk": "2",
+  "title": "Critical Access Control Bypass in encodeRoleProvider Function: Unauthorized Access Risk in RoleProvider Handling",
+  "issueId": 111,
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/111"
+}
