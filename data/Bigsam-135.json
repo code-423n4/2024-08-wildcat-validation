@@ -1,0 +1,8 @@
+{
+  "contest": 434,
+  "handle": "Bigsam",
+  "risk": "2",
+  "title": "The contract goes back to being in a Delinquent state 1 seconds after repaying all DelinquentDebt because a wrong repayment flow",
+  "issueId": 135,
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/135"
+}
