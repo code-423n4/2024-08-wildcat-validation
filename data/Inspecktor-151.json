@@ -1,0 +1,8 @@
+{
+  "contest": 434,
+  "handle": "Inspecktor",
+  "risk": "3",
+  "title": "The user may lose their funds when calling the WildcatMarketWithdrawals.executeWithdrawal() and WildcatMarketWithdrawals.executeWithdrawals() functions",
+  "issueId": 151,
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/151"
+}
