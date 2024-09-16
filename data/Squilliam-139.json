@@ -1,0 +1,8 @@
+{
+  "contest": 434,
+  "handle": "Squilliam",
+  "risk": "2",
+  "title": "Unbounded `extraData` in Hook System Enables Gas Griefing",
+  "issueId": 139,
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/139"
+}
