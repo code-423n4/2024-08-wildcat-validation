@@ -1,0 +1,8 @@
+{
+  "contest": 434,
+  "handle": "Squilliam",
+  "risk": "2",
+  "title": "Fee Update Deadlock in `HooksFactory` Contract",
+  "issueId": 141,
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/141"
+}
