@@ -1,0 +1,8 @@
+{
+  "contest": 434,
+  "handle": "Squilliam",
+  "risk": "2",
+  "title": "Unbounded Loop in executeWithdrawals Function can lead to DoS",
+  "issueId": 140,
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/140"
+}
