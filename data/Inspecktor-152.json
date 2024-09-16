@@ -1,0 +1,8 @@
+{
+  "contest": 434,
+  "handle": "Inspecktor",
+  "risk": "2",
+  "title": "Possible DOS when calling HooksFactory.deployHooksInstance()",
+  "issueId": 152,
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/152"
+}
