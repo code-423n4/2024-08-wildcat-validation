@@ -1,0 +1,8 @@
+{
+  "contest": 434,
+  "handle": "deadrxsezzz",
+  "risk": "2",
+  "title": "Partially repaying unpaid batches will be broken if scale factor exceeds 2",
+  "issueId": 146,
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/146"
+}
