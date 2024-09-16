@@ -89,3 +89,76 @@ function canReleaseEscrow() public view override returns (bool) {
 
 ### IN SUMMARY
 in the event that canReleaseEscrow is called multiple times, gas usage can be optimised by caching the results of external calls to avoid repeated calls 
+
+
+
+# GAS OPTIMISATION FOR FUNCTIONS IN THE src/libraries/LibStoredInitCode.sol
+
+#### github code reference(permalink)
+https://github.com/code-423n4/2024-08-wildcat/blob/fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1/src/libraries/LibStoredInitCode.sol#L85-L123
+
+
+### optimisation
+a single exectcodecopy operation should be used wherever possible to reduce gas costs associated with copying code from an external address.In the original code, each function 
+that deploys a contract from stored init code uses extcodecopy to copy the init code from the initCodeStorage address to memory.
+ This operation involves: Copying a portion of code from the initCodeStorage address and The memory layout for the init code and additional arguments might differ.
+To optimize, i reduced redundant extcodecopy operations by combining the operations where possible, such as handling constructor arguments within the same process rather than separately. This reduces the total number of operations and hence saves gas.
+see my code below:
+
+function createWithStoredInitCode(
+  address initCodeStorage,
+  uint256 value,
+  bytes memory constructorArgs
+) internal returns (address deployment) {
+  assembly {
+    let memPtr := mload(0x40)
+    let initCodeSize := sub(extcodesize(initCodeStorage), 1)
+
+    // Copy init code and optionally append constructor args
+    extcodecopy(initCodeStorage, memPtr, 1, initCodeSize)
+    let constructorArgsSize := mload(constructorArgs)
+    if gt(constructorArgsSize, 0) {
+      mcopy(add(memPtr, initCodeSize), add(constructorArgs, 0x20), constructorArgsSize)
+      initCodeSize := add(initCodeSize, constructorArgsSize)
+    }
+
+    // Deploy the contract and handle errors
+    deployment := create(value, memPtr, initCodeSize)
+    if iszero(deployment) {
+      mstore(0x00, 0x30116425) // DeploymentFailed()
+      revert(0x1c, 0x04)
+    }
+  }
+}
+
+function create2WithStoredInitCode(
+  address initCodeStorage,
+  bytes32 salt,
+  uint256 value,
+  bytes memory constructorArgs
+) internal returns (address deployment) {
+  assembly {
+    let memPtr := mload(0x40)
+    let initCodeSize := sub(extcodesize(initCodeStorage), 1)
+
+    // Copy init code and optionally append constructor args
+    extcodecopy(initCodeStorage, memPtr, 1, initCodeSize)
+    let constructorArgsSize := mload(constructorArgs)
+    if gt(constructorArgsSize, 0) {
+      mcopy(add(memPtr, initCodeSize), add(constructorArgs, 0x20), constructorArgsSize)
+      initCodeSize := add(initCodeSize, constructorArgsSize)
+    }
+
+    // Deploy contract using CREATE2 and handle errors
+    deployment := create2(value, memPtr, initCodeSize, salt)
+    if iszero(deployment) {
+      mstore(0x00, 0x30116425) // DeploymentFailed()
+      revert(0x1c, 0x04)
+    }
+  }
+}
+
+### IN SUMMARY
+
+in my code sampl, i used the extcodecopy to copy the init code and handle constructor arguments in a single pass where possible.
+ This avoids multiple separate calls for copying code and appending arguments, which can be costly.i also copied constructor arguments right after copying the init code instead of copying constructor arguments in a separate step. ths consolidation reduces gas costs by minimysing redundant memory operations and copying.
