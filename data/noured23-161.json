@@ -1,0 +1,8 @@
+{
+  "contest": 434,
+  "handle": "noured23",
+  "risk": "3",
+  "title": "Bypassing Access Controls via Insufficient Validation of hooksData",
+  "issueId": 161,
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/161"
+}
