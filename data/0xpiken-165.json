@@ -1,0 +1,8 @@
+{
+  "contest": 434,
+  "handle": "0xpiken",
+  "risk": "2",
+  "title": "Any `borrower` can remove itself from role providers of Hooks",
+  "issueId": 165,
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/165"
+}
