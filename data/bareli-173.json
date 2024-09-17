@@ -1,0 +1,8 @@
+{
+  "contest": 434,
+  "handle": "bareli",
+  "risk": "2",
+  "title": "In pushProtocolFeeBipsUpdates, there's a potential for an unbounded loop if the number of markets is very large, which could lead to out-of-gas errors.",
+  "issueId": 173,
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/173"
+}
