@@ -499,6 +499,167 @@ function safeTransferWithRetry(address token, address to, uint256 amount) intern
 
 While the current implementation uses safe transfer methods, it doesn't account for the full range of ERC20 tokens. The suggested mitigations would significantly enhance the reliability of the protocol.
 
+## Low 7 - Enhancing Reentrancy Protection in Withdrawal Process
+
+## Overview
+
+The WildcatMarketWithdrawals and WildcatSanctionsEscrow contracts have opportunities for improving their reentrancy protection mechanisms in the withdrawal and escrow release processes. While some protective measures are in place, certain areas could benefit from additional safeguards to further strengthen the system's security.
+
+## Description
+
+The main area for improvement centers on the execution of withdrawals and the release of funds from escrow. The primary `executeWithdrawal` function is protected by a reentrancy guard, but the internal `_executeWithdrawal` function and the `releaseEscrow` function in the escrow contract could benefit from explicit reentrancy protection. Additionally, optimizing the order of operations in `_executeWithdrawal` could further enhance security, particularly regarding hook functions.
+
+## Code Location
+
+1. WildcatMarketWithdrawals contract:
+   - `executeWithdrawal` function (protected by `nonReentrant` modifier)
+   - `_executeWithdrawal` function (internal function called by `executeWithdrawal`)
+2. WildcatSanctionsEscrow contract:
+   - `releaseEscrow` function (lines 34-43)
+
+## Impact
+
+Implementing these improvements could prevent:
+- Potential unauthorized multiple withdrawals
+- Unintended manipulation of contract state
+- Possible drain of funds
+- Disruption of the withdrawal process
+
+Enhancing security measures is particularly important given the financial nature of the contracts.
+
+## Recommended Mitigations
+
+1. Implement a reentrancy guard in the `_executeWithdrawal` function.
+2. Reorder operations in `_executeWithdrawal` to ensure all state changes occur before external calls, including hook functions.
+3. Add a reentrancy guard to the `releaseEscrow` function in the WildcatSanctionsEscrow contract.
+4. Consider implementing a reentrancy guard at the contract level for WildcatSanctionsEscrow.
+
+Implementing these improvements will significantly enhance the robustness and security of the protocol, ensuring better protection for both the system and its users.
+
+## Low 8 - Unbounded Solidity Version Pragma
+
+### Overview:
+
+The contract uses a floating pragma statement `pragma solidity >=0.8.20;` which does not specify an upper bound for the Solidity compiler version. This practice can lead to potential vulnerabilities if the contract is compiled with a future version of Solidity that introduces breaking changes or new features that may affect the contract's behavior.
+
+### Description:
+
+New versions of solidity may introduce changes that could alter the behavior of existing code. By using a floating pragma without an upper bound, the contract becomes vulnerable to potential issues arising from future compiler versions. This can lead to unexpected behavior, security vulnerabilities, or deployment problems if the contract is recompiled with a newer, incompatible version of Solidity.
+
+### CodeLocation:
+
+https://github.com/code-423n4/2024-08-wildcat/blob/fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1/src/market/WildcatMarketToken.sol#L2-L2
+
+https://github.com/code-423n4/2024-08-wildcat/blob/fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1/src/libraries/LibStoredInitCode.sol#L2-L2
+
+https://github.com/code-423n4/2024-08-wildcat/blob/fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1/src/types/TransientBytesArray.sol#L2-L2
+
+### Impact:
+
+The impact of this vulnerability is potentially severe. It may lead to:
+1. Unexpected contract behavior if compiled with a future, incompatible Solidity version.
+2. Introduction of new security vulnerabilities due to changes in language semantics.
+3. Deployment issues or increased gas costs if the contract is recompiled with a significantly different compiler version.
+4. Difficulties in auditing and maintaining the contract across different environments or over time.
+
+### Recommended mitigations:
+
+1. Specify both a lower and upper bound for the Solidity version:
+
+   ```solidity
+   pragma solidity >=0.8.20 <0.9.0;
+   ```
+
+2. Alternatively, lock the contract to a specific Solidity version:
+
+   ```solidity
+   pragma solidity 0.8.20;
+   ```
+
+By implementing a bounded Solidity version pragma the protocol can significantly reduce the risk of unexpected behavior and potential vulnerabilities introduced by future compiler versions.
+
+## Low 9 - Reduced Compatibility Due to PUSH0 Opcode Usage in Solidity 0.8.20
+
+### Overview:
+
+The contract uses Solidity version 0.8.20, which introduces the PUSH0 opcode from the Shanghai EVM upgrade. This may limit the contract's compatibility with certain chains or Layer 2 solutions that haven't implemented this upgrade.
+
+### Description:
+
+Solidity 0.8.20 utilizes the PUSH0 opcode, which was introduced in the Ethereum Shanghai upgrade. While this opcode is supported on the Ethereum mainnet and many testnets, it may not be implemented on all EVM-compatible chains or Layer 2 solutions. This could lead to deployment failures or unexpected behavior on networks that haven't adopted the Shanghai upgrade.
+
+The use of this newer Solidity version, while beneficial for its latest features and optimizations, potentially reduces the portability of the smart contract across different blockchain environments.
+
+### Code Location:
+
+```solidity
+// SPDX-License-Identifier: Apache-2.0
+pragma solidity >=0.8.20;
+```
+
+### Impact:
+
+- Reduced compatibility with older EVM-compatible chains and some Layer 2 solutions
+- Potential deployment failures on unsupported networks
+- Possible unexpected behavior if deployed on networks without PUSH0 support
+- Limited portability of the smart contract across diverse blockchain environments
+
+### Recommended Mitigations:
+
+1. Consider using an earlier Solidity version (e.g., 0.8.19) that doesn't rely on the PUSH0 opcode for broader compatibility.
+2. If specific features from 0.8.20 are required, carefully evaluate the target deployment environments to ensure they support the Shanghai upgrade.
+3. Implement a multi-version contract strategy, maintaining separate versions for networks with and without PUSH0 support.
+4. Clearly document the required EVM version and potential compatibility issues in the project documentation.
+
+The choice of Solidity version 0.8.20 introduces a trade-off between leveraging the latest language features and maintaining broad compatibility. 
+
+## Low 10 - Unbounded Mapping Array `_marketsByHooksTemplate`
+
+### Overview
+
+The contract uses an unbounded mapping array `_marketsByHooksTemplate` which is iterated upon in certain functions. While mitigations are in place, this design could potentially lead to gas inefficiency or Denial of Service scenarios if the number of markets grows excessively large.
+
+## Description
+
+The `_marketsByHooksTemplate` mapping in the contract is an unbounded array that stores markets for each hooks template. This array is appended to in the `_deployMarket` function:
+
+```solidity
+_marketsByHooksTemplate[hooksTemplate].push(market);
+```
+
+Functions like `getMarketsForHooksTemplate` and `pushProtocolFeeBipsUpdates` iterate over this array. If the number of markets for a specific hooks template becomes very large, these iterations could consume excessive gas or potentially hit block gas limits, rendering the functions unusable.
+
+Mitigating factors include:
+1. Pagination in `getMarketsForHooksTemplate`
+2. Bounded iterations in `pushProtocolFeeBipsUpdates`
+
+These design choices indicate awareness of potential issues with large arrays and attempts to mitigate them. However, the underlying risk of an unbounded array remains.
+
+## Code Location
+
+- `_marketsByHooksTemplate` mapping
+- `_deployMarket` function
+- `getMarketsForHooksTemplate` function
+- `pushProtocolFeeBipsUpdates` function
+
+## Impact
+
+The impact of this issue is currently low due to implemented mitigations. However, as the number of markets grows, potential impacts include:
+1. Increased gas costs for operations involving these functions
+2. Possible DoS scenarios if array sizes exceed block gas limits
+3. Degraded user experience due to higher transaction costs or failed transactions
+
+## Recommended Mitigations
+
+While current mitigations reduce severity, consider implementing the following to further optimize gas usage and prevent future issues:
+
+1. Implement a maximum limit on the number of markets per hooks template.
+2. Use a more gas-efficient data structure for storing markets, such as a mapping with a separate index-tracking array.
+3. Develop a mechanism to remove markets from the array when they're no longer needed.
+4. Implement additional checks to prevent operations on excessively large arrays.
+
+While the current implementation includes mitigations for large arrays, the use of an unbounded mapping array presents a potential risk as the protocol scales. 
+
 ## Non-Critical Findings
 
 ## NC 1 - Arithmetic in Array Index Poses Potential Risk in Protocol Fee Update Function
@@ -598,167 +759,6 @@ The impact is the following:
 2. Consider a more gas-efficient data structure for storing and querying pull providers, such as a mapping with a separate array for keys.
 
 The unbounded nature of the `_pullProviders` array, combined with the iteration in `_loopTryGetCredential`, could become a significant bottleneck as the system scales. Implementing appropriate mitigations now would ensure long-term efficiency and gas-friendliness, providing a better user experience and maintaining the protocol's viability as it grows. 
-
-## NC 3 - Enhancing Reentrancy Protection in Withdrawal Process
-
-## Overview
-
-The WildcatMarketWithdrawals and WildcatSanctionsEscrow contracts have opportunities for improving their reentrancy protection mechanisms in the withdrawal and escrow release processes. While some protective measures are in place, certain areas could benefit from additional safeguards to further strengthen the system's security.
-
-## Description
-
-The main area for improvement centers on the execution of withdrawals and the release of funds from escrow. The primary `executeWithdrawal` function is protected by a reentrancy guard, but the internal `_executeWithdrawal` function and the `releaseEscrow` function in the escrow contract could benefit from explicit reentrancy protection. Additionally, optimizing the order of operations in `_executeWithdrawal` could further enhance security, particularly regarding hook functions.
-
-## Code Location
-
-1. WildcatMarketWithdrawals contract:
-   - `executeWithdrawal` function (protected by `nonReentrant` modifier)
-   - `_executeWithdrawal` function (internal function called by `executeWithdrawal`)
-2. WildcatSanctionsEscrow contract:
-   - `releaseEscrow` function (lines 34-43)
-
-## Impact
-
-Implementing these improvements could prevent:
-- Potential unauthorized multiple withdrawals
-- Unintended manipulation of contract state
-- Possible drain of funds
-- Disruption of the withdrawal process
-
-Enhancing security measures is particularly important given the financial nature of the contracts.
-
-## Recommended Mitigations
-
-1. Implement a reentrancy guard in the `_executeWithdrawal` function.
-2. Reorder operations in `_executeWithdrawal` to ensure all state changes occur before external calls, including hook functions.
-3. Add a reentrancy guard to the `releaseEscrow` function in the WildcatSanctionsEscrow contract.
-4. Consider implementing a reentrancy guard at the contract level for WildcatSanctionsEscrow.
-
-Implementing these improvements will significantly enhance the robustness and security of the protocol, ensuring better protection for both the system and its users.
-
-## NC 4 - Unbounded Solidity Version Pragma
-
-### Overview:
-
-The contract uses a floating pragma statement `pragma solidity >=0.8.20;` which does not specify an upper bound for the Solidity compiler version. This practice can lead to potential vulnerabilities if the contract is compiled with a future version of Solidity that introduces breaking changes or new features that may affect the contract's behavior.
-
-### Description:
-
-New versions of solidity may introduce changes that could alter the behavior of existing code. By using a floating pragma without an upper bound, the contract becomes vulnerable to potential issues arising from future compiler versions. This can lead to unexpected behavior, security vulnerabilities, or deployment problems if the contract is recompiled with a newer, incompatible version of Solidity.
-
-### CodeLocation:
-
-https://github.com/code-423n4/2024-08-wildcat/blob/fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1/src/market/WildcatMarketToken.sol#L2-L2
-
-https://github.com/code-423n4/2024-08-wildcat/blob/fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1/src/libraries/LibStoredInitCode.sol#L2-L2
-
-https://github.com/code-423n4/2024-08-wildcat/blob/fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1/src/types/TransientBytesArray.sol#L2-L2
-
-### Impact:
-
-The impact of this vulnerability is potentially severe. It may lead to:
-1. Unexpected contract behavior if compiled with a future, incompatible Solidity version.
-2. Introduction of new security vulnerabilities due to changes in language semantics.
-3. Deployment issues or increased gas costs if the contract is recompiled with a significantly different compiler version.
-4. Difficulties in auditing and maintaining the contract across different environments or over time.
-
-### Recommended mitigations:
-
-1. Specify both a lower and upper bound for the Solidity version:
-
-   ```solidity
-   pragma solidity >=0.8.20 <0.9.0;
-   ```
-
-2. Alternatively, lock the contract to a specific Solidity version:
-
-   ```solidity
-   pragma solidity 0.8.20;
-   ```
-
-By implementing a bounded Solidity version pragma the protocol can significantly reduce the risk of unexpected behavior and potential vulnerabilities introduced by future compiler versions.
-
-## NC 5 - Reduced Compatibility Due to PUSH0 Opcode Usage in Solidity 0.8.20
-
-### Overview:
-
-The contract uses Solidity version 0.8.20, which introduces the PUSH0 opcode from the Shanghai EVM upgrade. This may limit the contract's compatibility with certain chains or Layer 2 solutions that haven't implemented this upgrade.
-
-### Description:
-
-Solidity 0.8.20 utilizes the PUSH0 opcode, which was introduced in the Ethereum Shanghai upgrade. While this opcode is supported on the Ethereum mainnet and many testnets, it may not be implemented on all EVM-compatible chains or Layer 2 solutions. This could lead to deployment failures or unexpected behavior on networks that haven't adopted the Shanghai upgrade.
-
-The use of this newer Solidity version, while beneficial for its latest features and optimizations, potentially reduces the portability of the smart contract across different blockchain environments.
-
-### Code Location:
-
-```solidity
-// SPDX-License-Identifier: Apache-2.0
-pragma solidity >=0.8.20;
-```
-
-### Impact:
-
-- Reduced compatibility with older EVM-compatible chains and some Layer 2 solutions
-- Potential deployment failures on unsupported networks
-- Possible unexpected behavior if deployed on networks without PUSH0 support
-- Limited portability of the smart contract across diverse blockchain environments
-
-### Recommended Mitigations:
-
-1. Consider using an earlier Solidity version (e.g., 0.8.19) that doesn't rely on the PUSH0 opcode for broader compatibility.
-2. If specific features from 0.8.20 are required, carefully evaluate the target deployment environments to ensure they support the Shanghai upgrade.
-3. Implement a multi-version contract strategy, maintaining separate versions for networks with and without PUSH0 support.
-4. Clearly document the required EVM version and potential compatibility issues in the project documentation.
-
-The choice of Solidity version 0.8.20 introduces a trade-off between leveraging the latest language features and maintaining broad compatibility. 
-
-## NC 6 - Unbounded Mapping Array `_marketsByHooksTemplate`
-
-### Overview
-
-The contract uses an unbounded mapping array `_marketsByHooksTemplate` which is iterated upon in certain functions. While mitigations are in place, this design could potentially lead to gas inefficiency or Denial of Service scenarios if the number of markets grows excessively large.
-
-## Description
-
-The `_marketsByHooksTemplate` mapping in the contract is an unbounded array that stores markets for each hooks template. This array is appended to in the `_deployMarket` function:
-
-```solidity
-_marketsByHooksTemplate[hooksTemplate].push(market);
-```
-
-Functions like `getMarketsForHooksTemplate` and `pushProtocolFeeBipsUpdates` iterate over this array. If the number of markets for a specific hooks template becomes very large, these iterations could consume excessive gas or potentially hit block gas limits, rendering the functions unusable.
-
-Mitigating factors include:
-1. Pagination in `getMarketsForHooksTemplate`
-2. Bounded iterations in `pushProtocolFeeBipsUpdates`
-
-These design choices indicate awareness of potential issues with large arrays and attempts to mitigate them. However, the underlying risk of an unbounded array remains.
-
-## Code Location
-
-- `_marketsByHooksTemplate` mapping
-- `_deployMarket` function
-- `getMarketsForHooksTemplate` function
-- `pushProtocolFeeBipsUpdates` function
-
-## Impact
-
-The impact of this issue is currently low due to implemented mitigations. However, as the number of markets grows, potential impacts include:
-1. Increased gas costs for operations involving these functions
-2. Possible DoS scenarios if array sizes exceed block gas limits
-3. Degraded user experience due to higher transaction costs or failed transactions
-
-## Recommended Mitigations
-
-While current mitigations reduce severity, consider implementing the following to further optimize gas usage and prevent future issues:
-
-1. Implement a maximum limit on the number of markets per hooks template.
-2. Use a more gas-efficient data structure for storing markets, such as a mapping with a separate index-tracking array.
-3. Develop a mechanism to remove markets from the array when they're no longer needed.
-4. Implement additional checks to prevent operations on excessively large arrays.
-
-While the current implementation includes mitigations for large arrays, the use of an unbounded mapping array presents a potential risk as the protocol scales. 
 
 
 
