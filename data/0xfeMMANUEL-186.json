@@ -1,0 +1,8 @@
+{
+  "contest": 434,
+  "handle": "0xfeMMANUEL",
+  "risk": "2",
+  "title": "Use of adress(0) as sentinel adress  in unsetCredential() could cause incompatibility issues with future Ethereum upgrades eg (EIP-1559, serenity) ",
+  "issueId": 186,
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/186"
+}
