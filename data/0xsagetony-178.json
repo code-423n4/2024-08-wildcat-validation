@@ -1,0 +1,8 @@
+{
+  "contest": 434,
+  "handle": "0xsagetony",
+  "risk": "2",
+  "title": "Improper logic implementation on `AccessControlHooks::unblockFromDeposits` function leading to unblocked lenders being unable to deposit.",
+  "issueId": 178,
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/178"
+}
