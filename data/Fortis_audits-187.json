@@ -1,0 +1,8 @@
+{
+  "contest": 434,
+  "handle": "Fortis_audits",
+  "risk": "2",
+  "title": "Improper Handling of Loop-Called Methods and MultiCall Contracts in Spherex Guarded Methods Can Cause UnIntended Reverts",
+  "issueId": 187,
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/187"
+}
