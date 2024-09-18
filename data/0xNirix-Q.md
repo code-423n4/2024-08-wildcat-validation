@@ -26,3 +26,8 @@ If that fails, the code then checks if there's a lastProvider and attempts to re
 If the provider in hooksData (with length 20) is the same as lastProvider, this would result in trying to get a credential from the same provider twice.
 
 This redundancy could lead to unnecessary gas consumption and potentially confusing behavior. 
+
+
+
+2. In HooksFactory, once a hooks template is disabled, there's no way to re-enable it.
+`disableHooksTemplate` function sets enabled to false, but there's no corresponding function to set it back to true. https://github.com/code-423n4/2024-08-wildcat/blob/fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1/src/HooksFactory.sol#L201
