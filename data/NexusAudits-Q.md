@@ -378,11 +378,13 @@ Within the onTransfer function, after validating the recipient's credential, cal
 
 ## L-11: Lack of Fallback Mechanism for Sanctions Checks During Chainalysis Downtime
 
-The Wildcat protocol relies on a Chainalysis sanctions list to identify and restrict sanctioned addresses. The isFlaggedByChainalysis function () interacts with the chainalysisSanctionsList contract to determine if an address is flagged. However, the current implementation lacks a fallback mechanism to handle situations where the Chainalysis service might be unavailable, potentially leading to a disruption of the sanctions enforcement.
+https://github.com/code-423n4/2024-08-wildcat/blob/fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1/src/WildcatSanctionsSentinel.sol#L77
+
+The Wildcat protocol relies on a Chainalysis sanctions list to identify and restrict sanctioned addresses. The isFlaggedByChainalysis function interacts with the chainalysisSanctionsList contract to determine if an address is flagged. However, the current implementation lacks a fallback mechanism to handle situations where the Chainalysis service might be unavailable, potentially leading to a disruption of the sanctions enforcement.
 
 ### Details
 
-The protocol solely depends on the availability and responsiveness of the Chainalysis sanctions list contract (). Any downtime or unresponsiveness from this external service could render the entire sanctions checking mechanism inoperable.
+The protocol solely depends on the availability and responsiveness of the Chainalysis sanctions list contract. Any downtime or unresponsiveness from this external service could render the entire sanctions checking mechanism inoperable.
 
 The code doesn't include an alternative method or data source for verifying sanctions if the Chainalysis contract is inaccessible.
 
@@ -396,7 +398,7 @@ Denial of Service: Legitimate users might be unable to interact with the market 
 Security Vulnerability: A prolonged outage of the Chainalysis API could create a window for sanctioned addresses to bypass checks and potentially interact with the protocol, undermining the intended security measures.
 
 
-Fix:
+### Fix
 
 To address this single point of failure, implement a fallback mechanism that ensures the continuity of sanctions checks even when the Chainalysis service is unavailable:
 
@@ -408,7 +410,7 @@ Secondary Data Source: Consider integrating a secondary sanctions list provider 
 
 ## L-12: Inconsistent Market Closure Checks
 
-### Summary
+https://github.com/code-423n4/2024-08-wildcat/blob/fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1/src/market/WildcatMarket.sol
 
 The Wildcat Market contract employs the state.isClosed flag to manage actions when a market is closed. While some functions, such as deposit, borrow, collectFees, _repay, repayOutstandingDebt, and repayDelinquentDebt, diligently verify this flag, several other functions that interact with the market do not consistently enforce this check.
 
@@ -451,7 +453,9 @@ function rescueTokens(address token) external onlyBorrower onlyOpenMarket {
 
 Apply this modifier, or equivalent inline checks, to rescueTokens, setMaxTotalSupply, setAnnualInterestAndReserveRatioBips, and setProtocolFeeBips to enforce the isClosed condition.
 
-## L-13: Bug Report: Missing Event Emission for rescueTokens
+## L-13: Missing Event Emission for rescueTokens
+
+https://github.com/code-423n4/2024-08-wildcat/blob/fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1/src/market/WildcatMarket.sol#L37
 
 ### Summary
 
@@ -459,7 +463,7 @@ The rescueTokens function in the Wildcat Market contract allows the borrower to 
 
 ### Details
 
-The rescueTokens function in the provided sources does not emit an event after a successful token transfer. Event emissions serve as on-chain records, enabling off-chain systems and observers to track significant contract actions.
+The rescueTokens function does not emit an event after a successful token transfer. Event emissions serve as on-chain records, enabling off-chain systems and observers to track significant contract actions.
 
 ### Impact
 
@@ -491,7 +495,9 @@ function rescueTokens(address token) external onlyBorrower onlyOpenMarket {
 
 The TokensRescued event includes the token address, rescuer address, and the amount rescued. You can customize these parameters based on your monitoring and auditing requirements.
 
-## L-14: Bug Report: Asset Transfer Before Market Closure Check in repay Function
+## L-14: Asset Transfer Before Market Closure Check in repay Function
+
+https://github.com/code-423n4/2024-08-wildcat/blob/fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1/src/market/WildcatMarket.sol#L202
 
 The repay function in the Wildcat Market contract allows borrowers to repay their debts. However, the current implementation exhibits a potential vulnerability where the asset transfer occurs before the market closure status is verified.
 
@@ -526,4 +532,45 @@ function repay(uint256 amount) external nonReentrant sphereXGuardExternal {
 }
 ```
 
-## 
+## L-15: closeMarket Lacks Check for Unpaid Withdrawals
+
+https://github.com/code-423n4/2024-08-wildcat/blob/fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1/src/market/WildcatMarket.sol#L226
+
+The closeMarket function in the Wildcat Market contract aims to gracefully shut down a market, settling outstanding debts and distributing remaining assets. However, the current implementation does not explicitly ensure that all pending withdrawal batches are fully paid off before the market is marked as closed.
+
+### Details
+
+Depending on whether the market holds excess assets or debts, the function settles the difference by transferring assets to the appropriate party (borrower or contract).
+
+The function resets key parameters such as interest rate (annualInterestBips), delinquency status (timeDelinquent), and sets the isClosed flag to true, effectively closing the market.
+
+The function attempts to process the pending withdrawal batch, if any, followed by iterating and processing unpaid withdrawal batches.
+
+The function only includes a check to revert if state.scaledPendingWithdrawals is not zero after attempting to process withdrawal batches.
+
+### Impact
+
+The current logic presents a potential flaw. While the function attempts to process pending and unpaid withdrawals, the absence of an upfront check before marking the market as closed creates a risk of incomplete withdrawal settlements. The sole reliance on state.scaledPendingWithdrawals after the processing loop might not guarantee all withdrawals are settled, especially if insufficient liquidity exists to cover them.
+
+### Fix
+
+To enhance the robustness of the closeMarket function and guarantee all pending withdrawals are settled before closure:
+
+Introduce upfront check for the existence of any non-empty unpaid withdrawal batches. If found, revert the closure process, preventing premature closure.
+
+// ... Inside the closeMarket function ...
+
+// Check for unpaid withdrawal batches BEFORE marking the market as closed
+if (_withdrawalData.unpaidBatches.length() > 0) {
+    revert_CloseMarketWithUnpaidWithdrawals();
+}
+
+// Proceed with market parameter updates and closure...
+
+### Considerations
+
+Liquidity Requirements: Enforcing full withdrawal settlement might necessitate the borrower injecting additional liquidity into the market before closure if existing assets are insufficient.
+
+Borrower Responsibilities: Document the requirement for borrowers to ensure adequate liquidity for pending withdrawals before initiating market closure.
+
+By integrating these checks and potentially enhancing reporting, the Wildcat Market contract can ensure a more reliable and transparent market closure process, instilling greater confidence among participants regarding the proper handling of their funds, even as a market concludes its operations.
