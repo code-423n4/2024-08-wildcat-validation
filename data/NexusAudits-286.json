@@ -1,0 +1,8 @@
+{
+  "contest": 434,
+  "handle": "NexusAudits",
+  "risk": "2",
+  "title": "Interest Rate Manipulation Due to Incremental Reductions Bypass Reserve Ratio Protection",
+  "issueId": 286,
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/286"
+}
