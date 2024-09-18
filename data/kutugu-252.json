@@ -1,0 +1,8 @@
+{
+  "contest": 434,
+  "handle": "kutugu",
+  "risk": "2",
+  "title": "Anyone can call `AccessControlHooks.onQueueWithdrawal` to DOS lender's operation",
+  "issueId": 252,
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/252"
+}
