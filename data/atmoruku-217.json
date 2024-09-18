@@ -1,0 +1,8 @@
+{
+  "contest": 434,
+  "handle": "atmoruku",
+  "risk": "3",
+  "title": "Exploiting Faulty Logic in Role Provider: Expired Credential Bypass in Access Control Hooks",
+  "issueId": 217,
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/217"
+}
