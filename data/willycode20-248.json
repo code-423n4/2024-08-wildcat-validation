@@ -1,0 +1,8 @@
+{
+  "contest": 434,
+  "handle": "willycode20",
+  "risk": "2",
+  "title": "The function [pushProtocolFeeBipsUpdates] allows anybody to update the protocol fee of various markets",
+  "issueId": 248,
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/248"
+}
