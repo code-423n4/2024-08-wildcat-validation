@@ -1,0 +1,8 @@
+{
+  "contest": 434,
+  "handle": "willycode20",
+  "risk": "3",
+  "title": "  ### The function [WildcatSanctionsSentinel::createEscrow] doesn't implement access control allowing anyone to call this function an implement unintendeded state changes",
+  "issueId": 234,
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/234"
+}
