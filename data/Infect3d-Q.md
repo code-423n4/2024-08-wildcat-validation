@@ -138,3 +138,25 @@ Manual review
 
 ## Recommended Mitigation Steps
 Call the provider address with `isPullProvider()` to ensure it can still grant credentials
+
+
+# L07 - Sanctioned account can poison market by transfering assets directly to market
+https://github.com/code-423n4/2024-08-wildcat/blob/main/src/market/WildcatMarketBase.sol#L458
+
+## Vulnerability details
+A malicious actor with sanctionned funds can send tokens to a market right before `updateState/_getUpdatedState` and `_writeState` are called. The funds will be marked for a batch, and registered in the `availableLiquidity`
+
+Then, it will be used to calculate the new values for `batch.scaledAmountBurned` and `state.scaledPendingWithdrawals`, basically poisoning the market and lenders who received those assets with assets from an OFAC sanctionned address.
+This could cause multiple lenders to be also flagged as sanctionned causing further legal issues.
+
+Because assets can be deposited to be distributed without interacting with the protocol external functions, XSphere protection will have no power to block this.
+Also, this might not be noticed by the borrower.
+
+## Impact
+Market can distribute sanctionned funds to lenders which might cause trouble to borrower and all users
+
+## Tools Used
+Manual review
+
+## Recommended Mitigation Steps
+Use an internal accounting system to ensure no poisoned funds can be dispersed through the market.
