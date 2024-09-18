@@ -375,3 +375,155 @@ Known lenders benefit from relaxed withdrawal requirements in certain scenarios.
 To address this issue, the onTransfer hook must also update the isKnownLenderOnMarket status for recipients who are not yet recognized as known lenders.
 
 Within the onTransfer function, after validating the recipient's credential, call _writeLenderStatus with the canSetKnownLender argument set to true. This will ensure that the recipient's status is updated correctly, marking them as a known lender if they successfully pass the credential check.
+
+## L-11: Lack of Fallback Mechanism for Sanctions Checks During Chainalysis Downtime
+
+The Wildcat protocol relies on a Chainalysis sanctions list to identify and restrict sanctioned addresses. The isFlaggedByChainalysis function () interacts with the chainalysisSanctionsList contract to determine if an address is flagged. However, the current implementation lacks a fallback mechanism to handle situations where the Chainalysis service might be unavailable, potentially leading to a disruption of the sanctions enforcement.
+
+### Details
+
+The protocol solely depends on the availability and responsiveness of the Chainalysis sanctions list contract (). Any downtime or unresponsiveness from this external service could render the entire sanctions checking mechanism inoperable.
+
+The code doesn't include an alternative method or data source for verifying sanctions if the Chainalysis contract is inaccessible.
+
+This lack of redundancy could disrupt or halt crucial market operations that rely on sanctions checks. For instance, deposits, withdrawals, transfers, or even borrower actions like borrowing or setting parameters might be blocked entirely if the Chainalysis service is down, even for non-sanctioned addresses.
+
+### Impact
+
+The absence of a fallback mechanism for sanctions checks during Chainalysis downtime could severely hinder the protocol's functionality and security:
+
+Denial of Service: Legitimate users might be unable to interact with the market if the Chainalysis service experiences temporary downtime or network issues.
+Security Vulnerability: A prolonged outage of the Chainalysis API could create a window for sanctioned addresses to bypass checks and potentially interact with the protocol, undermining the intended security measures.
+
+
+Fix:
+
+To address this single point of failure, implement a fallback mechanism that ensures the continuity of sanctions checks even when the Chainalysis service is unavailable:
+
+Local Cache: Maintain a local cache of recently flagged addresses within the WildcatMarket contract. This cache can be updated periodically and used as a secondary source of truth when the Chainalysis API is inaccessible.
+
+Circuit Breaker Pattern: Implement a circuit breaker pattern that monitors the responsiveness of the Chainalysis contract. If repeated failures or timeouts occur, the circuit breaker can trip, temporarily switching to a more lenient mode, perhaps relying on the local cache or allowing transactions with additional verification steps.
+
+Secondary Data Source: Consider integrating a secondary sanctions list provider as a backup. This provider could be another on-chain service or a decentralized oracle network that provides similar data points.
+
+## L-12: Inconsistent Market Closure Checks
+
+### Summary
+
+The Wildcat Market contract employs the state.isClosed flag to manage actions when a market is closed. While some functions, such as deposit, borrow, collectFees, _repay, repayOutstandingDebt, and repayDelinquentDebt, diligently verify this flag, several other functions that interact with the market do not consistently enforce this check.
+
+### Details
+
+The following functions lack an isClosed check:
+
+rescueTokens: Allows the borrower to recover tokens sent to the market contract by mistake. A closed market should ideally prevent further token interactions, even by the borrower.
+
+setMaxTotalSupply: Enables the borrower to modify the maximum token supply. Allowing this action on a closed market contradicts the concept of a closed market, which typically implies fixed parameters.
+
+setAnnualInterestAndReserveRatioBips: Allows adjustments to interest rates and reserve ratios, typically controlled by the borrower. Similar to setMaxTotalSupply, this action seems incongruous with a closed market.
+
+setProtocolFeeBips: Permits updating the protocol fee, controlled by the factory. While fees might not be directly relevant in a closed market, preventing changes ensures consistency.
+
+### Impact
+
+This inconsistency in market closure checks introduces ambiguity and potential risks:
+
+Unintended Token Flows: rescueTokens on a closed market might allow the borrower to manipulate token balances in unintended ways, potentially impacting outstanding obligations or withdrawals.
+
+Conflicting Market State: Allowing parameter changes like setMaxTotalSupply, setAnnualInterestAndReserveRatioBips, and setProtocolFeeBips after closure creates a discrepancy between the isClosed status and the market's actual state, potentially confusing participants and complicating accounting.
+
+### Fix
+
+To ensure consistent behavior and mitigate risks, implement the isClosed check in all relevant functions. One approach is to introduce a modifier:
+
+```solidity
+modifier onlyOpenMarket() {
+    MarketState memory state = _getUpdatedState();
+    if (state.isClosed) revert_MarketClosed();
+    _;
+}
+
+// Example of applying the modifier
+function rescueTokens(address token) external onlyBorrower onlyOpenMarket {
+    // ... function logic ...
+}
+```
+
+Apply this modifier, or equivalent inline checks, to rescueTokens, setMaxTotalSupply, setAnnualInterestAndReserveRatioBips, and setProtocolFeeBips to enforce the isClosed condition.
+
+## L-13: Bug Report: Missing Event Emission for rescueTokens
+
+### Summary
+
+The rescueTokens function in the Wildcat Market contract allows the borrower to recover tokens sent to the contract in error. However, this function currently lacks an event emission, which is crucial for transparency and monitoring.
+
+### Details
+
+The rescueTokens function in the provided sources does not emit an event after a successful token transfer. Event emissions serve as on-chain records, enabling off-chain systems and observers to track significant contract actions.
+
+### Impact
+
+The absence of an event emission for rescueTokens hinders the ability to monitor and audit token recoveries:
+
+Limited Transparency: Without an event, identifying when, why, and which tokens were rescued becomes challenging. This lack of transparency could raise concerns about potential misuse of the function, even if used as intended.
+
+Monitoring Difficulties: Off-chain systems relying on events to track token movements and balances within the market will miss these rescue operations, leading to inaccurate records and potentially complicating accounting or analysis.
+
+Security Implications: While the function is restricted to the borrower, a lack of event records makes it difficult to investigate suspicious activity retroactively if a borrower's key is compromised.
+
+### Fix
+
+To enhance transparency and security, emit an event after a successful token rescue in the rescueTokens function. The event should include relevant details about the operation:
+
+```solidity
+// ... other contract code ...
+
+event TokensRescued(address indexed token, address indexed rescuer, uint256 amount);
+
+function rescueTokens(address token) external onlyBorrower onlyOpenMarket {
+    // ... existing function logic ...
+
+    token.safeTransferAll(msg.sender);
+
+    emit TokensRescued(token, msg.sender, amount);
+}
+```
+
+The TokensRescued event includes the token address, rescuer address, and the amount rescued. You can customize these parameters based on your monitoring and auditing requirements.
+
+## L-14: Bug Report: Asset Transfer Before Market Closure Check in repay Function
+
+The repay function in the Wildcat Market contract allows borrowers to repay their debts. However, the current implementation exhibits a potential vulnerability where the asset transfer occurs before the market closure status is verified.
+
+### Impact
+
+This sequence of actions introduces a risk of processing repayments even when the market is closed:
+
+Unintended Asset Transfers: If a borrower initiates a repayment after a market has closed but before the transaction is mined, the asset transfer might still succeed. This could result in assets being sent to a closed market where they cannot be utilized as intended.
+
+Accounting Discrepancies: Processing a repayment on a closed market could lead to inconsistencies between the market's internal state (debts, balances) and its closed status.
+
+Complications in Market Closure: If a market is closed with outstanding repayments that were processed due to this bug, it could complicate procedures for settling final balances and distributing remaining assets.
+
+### Fix
+
+To mitigate this risk, the market closure check should be performed before executing the asset transfer:
+
+```solidity
+function repay(uint256 amount) external nonReentrant sphereXGuardExternal {
+    if (amount == 0) revert_NullRepayAmount();
+
+    // Check market state FIRST
+    MarketState memory state = _getUpdatedState();
+    if (state.isClosed) revert_RepayToClosedMarket();
+
+    // Proceed with the transfer if the market is open
+    asset.safeTransferFrom(msg.sender, address(this), amount);
+
+    emit_DebtRepaid(msg.sender, amount);
+
+    // ... rest of the function logic ...
+}
+```
+
+## 
