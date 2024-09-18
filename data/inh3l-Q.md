@@ -1,4 +1,4 @@
-## No access control on `executeWithdrawal` and `executeWithdrawals`
+## 1. No access control on `executeWithdrawal` and `executeWithdrawals`
 
 * Lines of code
 
@@ -28,7 +28,7 @@ Recommend allowing users to execute withdrawals for themselves.
 
 ***
 
-## Sanction Overrides may are ineffective if the underlying asset also relies on chainalysis
+## 2. Sanction Overrides may are ineffective if the underlying asset also relies on chainalysis
 
 * Lines of code
 https://github.com/code-423n4/2024-08-wildcat/blob/fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1/src/WildcatSanctionsEscrow.sol#L34
@@ -46,7 +46,7 @@ However, some tokens outright rely on chainalysis oracle for their transfer acti
 
 ***
 
-## WildcatMarketToken may not need approval from owner to perform transferFrom
+## 3. WildcatMarketToken may not need approval from owner to perform transferFrom
 
 * Lines of code
 
@@ -75,7 +75,7 @@ Use this instead
 ```
 ***
 
-## Asset may be stuck if token blocklists users, making sanction overrides useless
+## 4. Asset may be stuck if token blocklists users, making sanction overrides useless
 
 * Lines of code
 
@@ -101,7 +101,7 @@ Protocol will be working with blocklisting token, accroding to the information p
 
 ***
 
-## No access control in `nukeFromOrbit` may lead to forceful queing of withdrawals for users and blocking.
+## 5. No access control in `nukeFromOrbit` may lead to forceful queing of withdrawals for users and blocking.
 
 * Lines of code
 
@@ -135,7 +135,7 @@ Recommend limiting this to the borrower who can get to decide which users can be
 
 ***
 
-## Markets cannot be deployed with tokens that do not return string for name and symbol
+## 6. Markets cannot be deployed with tokens that do not return string for name and symbol
 
 * Lines of code
 
@@ -159,7 +159,7 @@ Recommend introducing a try catch to individually query asset name and symbol, c
 
 ***
 
-## Sanctioned users are still able to transfer WildcatMarketTokens
+## 7. Sanctioned users are still able to transfer WildcatMarketTokens
 
 * Lines of code
 
@@ -189,27 +189,8 @@ Consider preventing sanctioned users from being able to be approved and access t
   }
 ```
 ***
-## Redundant check for hook template existence can be removed
 
-* Lines of code
-
-https://github.com/code-423n4/2024-08-wildcat/blob/fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1/src/HooksFactory.sol#L530-L533
-
-### Impact
-
-`deployMarketAndHooks` checks for template existence before deployment. But this check is not needed as `_deployHooksInstance` already checks for that [here](https://github.com/code-423n4/2024-08-wildcat/blob/fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1/src/HooksFactory.sol#L295). Consider removing this check here.
-
-```solidity
-    HooksTemplate memory templateDetails = _templateDetails[hooksTemplate];
-    if (!templateDetails.exists) {
-      revert HooksTemplateNotFound();
-    }
-```
-
-
-***
-
-## `onQueueWithdrawal` should is missing the `isHooked` checks.
+## 8. `onQueueWithdrawal` should is missing the `isHooked` checks.
 
 * Lines of code
 
@@ -237,7 +218,7 @@ Unlike its FixedTermLoanHooks.sol counterpart, `onQueueWithdrawal` in AccessCont
 ```
 ***
 
-## Most getter functions return one less than intended count
+## 9. Most getter functions return one less than intended count
 
 * Lines of code
 
@@ -279,7 +260,7 @@ Recommend getting using the `i <= count` logic instead.
 
 ***
 
-## Confusing ERC20 queries `balanceOf` and `totalSupply`
+## 10. Confusing ERC20 queries `balanceOf` and `totalSupply`
 
 * Lines of code
 
@@ -309,7 +290,7 @@ Recommend renaming the current functions to balanceOfScaled and totalScaledSuppl
 
 ***
 
-## Limit to maximum amount that can be borrowed due to scaled amounts being limited to `type(uint104).max`
+## 11. Limit to maximum amount that can be borrowed due to scaled amounts being limited to `type(uint104).max`
 
 * Lines of code
 
@@ -342,5 +323,70 @@ struct Account {
     // Scale the mint amount
     uint104 scaledAmount = state.scaleAmount(amount).toUint104();
 ```
+
+***
+
+## 12. `repayOutstandingDebt` and `repayDelinquentDebt` implementation doesn't match other repay functions.
+
+* Lines of code
+
+https://github.com/code-423n4/2024-08-wildcat/blob/fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1/src/market/WildcatMarket.sol#L179
+
+https://github.com/code-423n4/2024-08-wildcat/blob/fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1/src/market/WildcatMarket.sol#L186
+
+### Impact
+`repayOutstandingDebt` and `repayDelinquentDebt` implementation doesn't match other repay functions as they actually update state before transferring assets into the protocol. As a result, the `totalAsset` parameter is potentially working with a stale parameter and the repaid amount is not counted towards any pending or unpaid withdrawals.
+
+### Recommended Mitigation Steps
+
+Recommend asset transfer before state update like is done in `repayAndProcessUnpaidWithdrawalBatches` and `repay` functions.
+
+***
+
+## 13. Lender cannot be blocked if their access has expired or has no valid credential
+
+* Lines of code
+
+https://github.com/code-423n4/2024-08-wildcat/blob/fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1/src/market/WildcatMarket.sol#L298-L306
+
+### Impact
+
+When an lender is to blocked by a borrower, the `_queueWithdrawal` function is called which creates a withdrawal request of the lender's assets.
+
+```solidity
+      uint32 expiry = _queueWithdrawal(
+        state,
+        account,
+        accountAddress,
+        scaledAmount,
+        normalizedAmount,
+        msg.data.length
+      );
+```
+
+The function wil then call the `onQueueWithdrawal` hook which verifies that the lender's access can be validated. It does this through the `_tryValidateAccess` function. If the credential cannot be verified(i.e account access has been revoked), this returns false which causes the transaction to revert.
+
+### Recommended Mitigation Steps
+
+A potential fix for this is to check if msg.sender is the borrower, and skipping authorization checks if it is.
+***
+
+## 14. Redundant check for hook template existence can be removed
+
+* Lines of code
+
+https://github.com/code-423n4/2024-08-wildcat/blob/fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1/src/HooksFactory.sol#L530-L533
+
+### Impact
+
+`deployMarketAndHooks` checks for template existence before deployment. But this check is not needed as `_deployHooksInstance` already checks for that [here](https://github.com/code-423n4/2024-08-wildcat/blob/fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1/src/HooksFactory.sol#L295). Consider removing this check here.
+
+```solidity
+    HooksTemplate memory templateDetails = _templateDetails[hooksTemplate];
+    if (!templateDetails.exists) {
+      revert HooksTemplateNotFound();
+    }
+```
+
 
 ***
