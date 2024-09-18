@@ -472,7 +472,262 @@ Add the ``!hooksTemplate.enabled`` check in ``deployMarket`` function
 if (!hooksTemplate.enabled){ revert;}
 
 ```
+##
 
+## [L-] Potential Zero-Word Issue for Strings Exactly 32 Bytes Long
+
+The mload function loads 32 bytes of data from memory. In the function you provided, the goal is to pack a string into two bytes32 words. The first word (word0) contains the length of the string and its first 31 bytes, while the second word (word1) is intended to hold the remaining part of the string (bytes 32 through 63).
+
+The problem arises when the string is exactly 32 bytes long. Specifically, the check gt(mload(str), 0x1f) (i.e., mload(str) > 31) evaluates to true because the string length (32 bytes) is indeed greater than 31 bytes. 
+
+### Explantion
+
+- The memory layout of Solidity strings includes the first 32 bytes (a word) for the length of the string. The string data starts immediately after this length word.
+- When the string is exactly 32 bytes long, the first word (word0) captures the first 31 bytes, along with the length byte.
+- The second word (word1) should hold the 32nd byte (i.e., the last byte of the string) and should not be zeroed out.
+
+- The code mload(add(str, 0x3f)) loads memory starting 63 bytes after the length, but for a string of exactly 32 bytes, there is no valid memory region that contains additional bytes.
+- This means that mload(add(str, 0x3f)) might load undefined or invalid data, or it might return zeros depending on the underlying memory state.
+
+- The current logic might end up zeroing out word1 even for strings exactly 32 bytes long. This is incorrect because word1 should store the 32nd byte, not be empty.
+
+```solidity
+FILE: 2024-08-wildcat/src/HooksFactory.sol
+
+word1 := mul(mload(add(str, 0x3f)), gt(mload(str), 0x1f))
+
+```
+https://github.com/code-423n4/2024-08-wildcat/blob/fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1/src/HooksFactory.sol#L389C7-L389C64
+
+### Recommended mitgation
+Adjust the comparison condition to account for the boundary case where the string length is exactly 32 bytes.
+
+```solidity
+
+word1 := mul(mload(add(str, 0x3f)), gt(mload(str), 0x20))
+
+```
+
+##
+
+## [L-] Race Condition on Market Initialization in _deployMarket
+
+In the _deployMarket function, the contract performs several operations before the actual market contract is deployed, including setting temporary market parameters in transient storage. However, the _setTmpMarketParameters(tmp) call occurs before the market is actually deployed.
+
+#### Issue
+ A race condition could occur if multiple market deployments are attempted simultaneously. Since the temporary market parameters are set in a shared storage variable (_tmpMarketParameters), two concurrent deployments could overwrite each other’s data, leading to incorrect market initialization or corrupted data.
+
+```solidity
+FILE: 2024-08-wildcat/src/HooksFactory.sol
+
+ function _deployMarket(
+    DeployMarketInputs memory parameters,
+    bytes memory hooksData,
+    address hooksTemplate,
+    HooksTemplate memory templateDetails,
+    bytes32 salt,
+    address originationFeeAsset,
+    uint256 originationFeeAmount
+  ) internal returns (address market) {
+    if (IWildcatArchController(_archController).isBlacklistedAsset(parameters.asset)) {
+      revert AssetBlacklisted();
+    }
+    address hooksInstance = parameters.hooks.hooksAddress();
+
+    if (!(address(bytes20(salt)) == msg.sender || bytes20(salt) == bytes20(0))) {
+      revert SaltDoesNotContainSender();
+    }
+
+    if (
+      originationFeeAsset != templateDetails.originationFeeAsset ||
+      originationFeeAmount != templateDetails.originationFeeAmount
+    ) {
+      revert FeeMismatch();
+    }
+
+    if (originationFeeAsset != address(0)) {
+      originationFeeAsset.safeTransferFrom(
+        msg.sender,
+        templateDetails.feeRecipient,
+        originationFeeAmount
+      );
+    }
+
+    market = LibStoredInitCode.calculateCreate2Address(ownCreate2Prefix, salt, marketInitCodeHash);
+
+    parameters.hooks = IHooks(hooksInstance).onCreateMarket(
+      msg.sender,
+      market,
+      parameters,
+      hooksData
+    );
+    uint8 decimals = parameters.asset.decimals();
+
+    string memory name = string.concat(parameters.namePrefix, parameters.asset.name());
+    string memory symbol = string.concat(parameters.symbolPrefix, parameters.asset.symbol());
+
+    TmpMarketParameterStorage memory tmp = TmpMarketParameterStorage({
+      borrower: msg.sender,
+      asset: parameters.asset,
+      packedNameWord0: bytes32(0),
+      packedNameWord1: bytes32(0),
+      packedSymbolWord0: bytes32(0),
+      packedSymbolWord1: bytes32(0),
+      decimals: decimals,
+      feeRecipient: templateDetails.feeRecipient,
+      protocolFeeBips: templateDetails.protocolFeeBips,
+      maxTotalSupply: parameters.maxTotalSupply,
+      annualInterestBips: parameters.annualInterestBips,
+      delinquencyFeeBips: parameters.delinquencyFeeBips,
+      withdrawalBatchDuration: parameters.withdrawalBatchDuration,
+      reserveRatioBips: parameters.reserveRatioBips,
+      delinquencyGracePeriod: parameters.delinquencyGracePeriod,
+      hooks: parameters.hooks
+    });
+    {
+      (tmp.packedNameWord0, tmp.packedNameWord1) = _packString(name);
+      (tmp.packedSymbolWord0, tmp.packedSymbolWord1) = _packString(symbol);
+    }
+
+    _setTmpMarketParameters(tmp);
+
+    if (market.code.length != 0) {
+      revert MarketAlreadyExists();
+    }
+    LibStoredInitCode.create2WithStoredInitCode(marketInitCodeStorage, salt);
+
+    IWildcatArchController(_archController).registerMarket(market);
+
+    _tmpMarketParameters.setEmpty();
+
+    _marketsByHooksTemplate[hooksTemplate].push(market);
+
+    emit MarketDeployed(
+      hooksTemplate,
+      market,
+      name,
+      symbol,
+      tmp.asset,
+      tmp.maxTotalSupply,
+      tmp.annualInterestBips,
+      tmp.delinquencyFeeBips,
+      tmp.withdrawalBatchDuration,
+      tmp.reserveRatioBips,
+      tmp.delinquencyGracePeriod,
+      tmp.hooks
+    );
+  }
+
+```
+https://github.com/code-423n4/2024-08-wildcat/blob/fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1/src/HooksFactory.sol#L393C2-L489C4
+
+### Recommended Mitgation
+Use a unique storage slot or a mapping keyed by the deployer or the market address to store temporary parameters.
+
+
+##
+
+## [L-] Logical Mistake in rescueTokens() function Conditional Check
+
+using .or for the conditional check, which is incorrect for Solidity.
+
+```solidity
+FILE:2024-08-wildcat/src/market/WildcatMarket.sol
+
+38: if ((token == asset).or(token == address(this))) {
+
+``` 
+https://github.com/code-423n4/2024-08-wildcat/blob/fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1/src/market/WildcatMarket.sol#L38
+
+### Recommended Mitigation
+ Use ``||`` for ``logical OR``.
+
+##
+
+## Insufficient Liquidity Handling in Withdrawal Batch Processing
+
+The issue arises when there is insufficient liquidity (availableLiquidity == 0) during withdrawal batch processing. This can lead to unprocessed or unpaid withdrawals, as the system may emit the WithdrawalBatchExpired event without properly handling the pending withdrawals, potentially leaving users unable to access their funds.
+
+emit_WithdrawalBatchExpired event emit values even no WithdrawalBatchPayment processed 
+
+```solidity
+FILE: 2024-08-wildcat/src/market
+/WildcatMarketBase.sol
+
+   emit_WithdrawalBatchExpired(
+      expiry,
+      batch.scaledTotalAmount,
+      batch.scaledAmountBurned,
+      batch.normalizedAmountPaid
+    );
+
+```
+https://github.com/code-423n4/2024-08-wildcat/blob/fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1/src/market/WildcatMarketBase.sol#L643-L648
+
+### Recommended Mitigation
+Only emit emit_WithdrawalBatchExpired event when availableLiquidity > 0 . Move emit to inside the if block 
+
+##
+
+## [L-] Lack of reentrancy modifiers in critical functions depositUpTo(),deposit() 
+
+The functions depositUpTo() and deposit() handle critical operations such as transferring assets and minting tokens. Without proper reentrancy protection, an attacker could exploit these functions by calling them recursively before the state is fully updated.
+
+```solidity
+FILE:2024-08-wildcat/src/market/WildcatMarket.sol
+
+ function depositUpTo(
+    uint256 amount
+  ) external virtual sphereXGuardExternal returns (uint256 /* actualAmount */) {
+    return _depositUpTo(amount);
+  }
+
+function deposit(uint256 amount) external virtual sphereXGuardExternal {
+    uint256 actualAmount = _depositUpTo(amount);
+    if (amount != actualAmount) revert_MaxSupplyExceeded();
+  }
+
+```
+https://github.com/code-423n4/2024-08-wildcat/blob/fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1/src/market/WildcatMarket.sol#L117-L120
+
+### Recommended Mitigation
+Add nonReentrant modifiers that are dealing transfers 
+
+##
+
+## [L-] collectFees() function not followed the CEI Pattern
+
+The function makes an external token transfer to feeRecipient before updating the internal state with _writeState(state). This violates the CEI pattern because it opens up a potential vulnerability where an attacker could exploit reentrancy through the external safeTransfer call, which may call back into the contract before the internal state is updated.
+
+```solidity
+FILE: 2024-08-wildcat/src/market/WildcatMarket.sol
+
+ function collectFees() external nonReentrant sphereXGuardExternal {
+    MarketState memory state = _getUpdatedState();
+    if (state.accruedProtocolFees == 0) revert_NullFeeAmount();
+
+    uint128 withdrawableFees = state.withdrawableProtocolFees(totalAssets());
+    if (withdrawableFees == 0) revert_InsufficientReservesForFeeWithdrawal();
+
+    state.accruedProtocolFees -= withdrawableFees;
+    asset.safeTransfer(feeRecipient, withdrawableFees);
+    _writeState(state);
+    emit_FeesCollected(withdrawableFees);
+  }
+
+``` 
+https://github.com/code-423n4/2024-08-wildcat/blob/fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1/src/market/WildcatMarket.sol#L125-L136
+
+### Recommended Mitigation
+Implement the Check-Effects-Interaction patterns
+
+##
+
+## [L-]   
+
+ 
+
+## [L-] When market have two lenders then any one can frontrun withdrwal request and befits his own both deposit and withdrawal areas 
 
 
 
