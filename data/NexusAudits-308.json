@@ -1,0 +1,8 @@
+{
+  "contest": 434,
+  "handle": "NexusAudits",
+  "risk": "2",
+  "title": "Missing Sanction Check During Market Origination",
+  "issueId": 308,
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/308"
+}
