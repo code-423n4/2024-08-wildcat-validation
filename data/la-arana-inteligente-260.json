@@ -1,0 +1,8 @@
+{
+  "contest": 434,
+  "handle": "la-arana-inteligente",
+  "risk": "2",
+  "title": "Keyspace Collision Between Account and Escrow Contract in Sanction Overrides Mapping could lead to Unintended behaviour",
+  "issueId": 260,
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/260"
+}
