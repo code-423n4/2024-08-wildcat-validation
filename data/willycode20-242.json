@@ -1,0 +1,8 @@
+{
+  "contest": 434,
+  "handle": "willycode20",
+  "risk": "2",
+  "title": "### The function [HooksFactory::pushProtocolFeeBipsUpdates] is missing access",
+  "issueId": 242,
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/242"
+}
