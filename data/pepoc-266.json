@@ -1,0 +1,8 @@
+{
+  "contest": 434,
+  "handle": "pepoc",
+  "risk": "2",
+  "title": "Persistent Contract State and Address After Block Reorganization by \"create\" opcode (_deployHooksInstance function)",
+  "issueId": 266,
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/266"
+}
