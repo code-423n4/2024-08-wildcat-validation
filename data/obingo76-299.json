@@ -1,0 +1,8 @@
+{
+  "contest": 434,
+  "handle": "obingo76",
+  "risk": "2",
+  "title": "Bug Report: Insufficient Input Validation in `WildcatMarket.sol`",
+  "issueId": 299,
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/299"
+}
