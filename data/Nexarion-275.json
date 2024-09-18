@@ -1,0 +1,8 @@
+{
+  "contest": 434,
+  "handle": "Nexarion",
+  "risk": "3",
+  "title": "Zero Address Can Deploy Markets Due to Insufficient Salt Validation",
+  "issueId": 275,
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/275"
+}
