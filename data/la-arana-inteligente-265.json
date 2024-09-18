@@ -1,0 +1,8 @@
+{
+  "contest": 434,
+  "handle": "la-arana-inteligente",
+  "risk": "3",
+  "title": "Arbitrary Asset Freeze and Withdrawal Queuing Due to Lack of Sanction Re-verification in `_blockAccount` Function",
+  "issueId": 265,
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/265"
+}
