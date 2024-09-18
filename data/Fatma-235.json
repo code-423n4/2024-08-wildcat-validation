@@ -1,0 +1,8 @@
+{
+  "contest": 434,
+  "handle": "Fatma",
+  "risk": "3",
+  "title": "The Visibility of `HooksFactory::pushProtocolFeeBipsUpdates` Function Allows Unauthorized Protocol Fee Updates.",
+  "issueId": 235,
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/235"
+}
