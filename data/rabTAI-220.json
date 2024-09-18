@@ -1,0 +1,8 @@
+{
+  "contest": 434,
+  "handle": "rabTAI",
+  "risk": "3",
+  "title": "Borrower Can Cause Intentional Out-of-Gas Reverts to Block Withdrawals of Users Transferred Debt Tokens",
+  "issueId": 220,
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/220"
+}
