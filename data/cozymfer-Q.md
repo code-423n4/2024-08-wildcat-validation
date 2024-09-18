@@ -7,5 +7,4 @@ The modifier SphereXconfig::spherexOnlyOperatorOrAdmin() is named with the logic
 User needs to be have the Operator and Admin roles when this modifier is called. Without intention of having both roles they could potentially lock functionality or access for the WildcatArchController::updateSphereXEngineOnRegisteredContracts function. 
 
 **Recommended mitigation**
-
 Make change to the logic of the function to match the or in the name to create the intended function, using "||" instead of "&&". Instead can change name to match logic inside function from spherexOnlyOperatorOrAdmin() to spherexOnlyOperatorAndAdmin(). Or just create both functions just depends on intention of use.
