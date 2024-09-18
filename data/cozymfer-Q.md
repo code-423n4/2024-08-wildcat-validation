@@ -1,4 +1,5 @@
 ###  Modifier SphereXConfig::spherexOnlyOperatorOrAdmin() is different from logic inside the funciton
+
 **Description**
 The modifier SphereXconfig::spherexOnlyOperatorOrAdmin() is named with the logic of an Operator "OR" an Admin role, but the logic inside function uses && which is a both operator AND admin roles.
 
