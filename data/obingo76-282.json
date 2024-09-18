@@ -1,0 +1,8 @@
+{
+  "contest": 434,
+  "handle": "obingo76",
+  "risk": "3",
+  "title": "Race Condition in Asset Borrowing Leading to Potential Over-borrowing in WildcatMarket.sol",
+  "issueId": 282,
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/282"
+}
