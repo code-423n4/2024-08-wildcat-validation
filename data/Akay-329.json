@@ -1,0 +1,8 @@
+{
+  "contest": 434,
+  "handle": "Akay",
+  "risk": "3",
+  "title": "Lack of validation for addresses returned by `tmpEscrowParams` in `WildcatSanctionsEscrow` contract",
+  "issueId": 329,
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/329"
+}
