@@ -1,0 +1,8 @@
+{
+  "contest": 434,
+  "handle": "willycode20",
+  "risk": "3",
+  "title": "### The function [WildcatSanctionsSentinel::createEscrow] include a check which checks for the existance of an escrowContract, however this check only can lead to unintended behaviour during code implementation",
+  "issueId": 231,
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/231"
+}
