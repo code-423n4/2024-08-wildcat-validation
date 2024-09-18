@@ -1,0 +1,8 @@
+{
+  "contest": 434,
+  "handle": "bareli",
+  "risk": "2",
+  "title": "No check for from and msg.sender are different in transferfrom",
+  "issueId": 257,
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/257"
+}
