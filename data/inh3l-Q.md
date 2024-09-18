@@ -141,6 +141,159 @@ Consider preventing sanctioned users from being able to be approved and access t
     return true;
   }
 ```
+***
+## Redundant check for hook template existence can be removed
 
+* Lines of code
+
+https://github.com/code-423n4/2024-08-wildcat/blob/fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1/src/HooksFactory.sol#L530-L533
+
+### Impact
+
+`deployMarketAndHooks` checks for template existence before deployment. But this check is not needed as `_deployHooksInstance` already checks for that [here](https://github.com/code-423n4/2024-08-wildcat/blob/fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1/src/HooksFactory.sol#L295). Consider removing this check here.
+
+```solidity
+    HooksTemplate memory templateDetails = _templateDetails[hooksTemplate];
+    if (!templateDetails.exists) {
+      revert HooksTemplateNotFound();
+    }
+```
+
+
+***
+
+## `onQueueWithdrawal` should is missing the `isHooked` checks.
+
+* Lines of code
+
+https://github.com/code-423n4/2024-08-wildcat/blob/fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1/src/access/AccessControlHooks.sol#L812-L826
+
+### Impact
+
+Unlike its FixedTermLoanHooks.sol counterpart, `onQueueWithdrawal` in AccessControlHooks.sol, `onQueueWithdrawal` does not check that the market is hooked, which may lead to the hooks being called from the wrong market. Recommend adding the `if (!market.isHooked) revert NotHookedMarket();` check.
+
+```solidity
+  function onQueueWithdrawal(
+    address lender,
+    uint32 /* expiry */,
+    uint /* scaledAmount */,
+    MarketState calldata /* state */,
+    bytes calldata hooksData
+  ) external override {
+    LenderStatus memory status = _lenderStatus[lender];
+    if (
+      !isKnownLenderOnMarket[lender][msg.sender] && !_tryValidateAccess(status, lender, hooksData)
+    ) {
+      revert NotApprovedLender();
+    }
+  }
+```
+***
+
+## Most getter functions return one less than intended count
+
+* Lines of code
+
+https://github.com/code-423n4/2024-08-wildcat/blob/fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1/src/HooksFactory.sol#L224
+
+https://github.com/code-423n4/2024-08-wildcat/blob/fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1/src/HooksFactory.sol#L247
+
+https://github.com/code-423n4/2024-08-wildcat/blob/fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1/src/WildcatArchController.sol#L179
+
+https://github.com/code-423n4/2024-08-wildcat/blob/fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1/src/WildcatArchController.sol#L222
+
+https://github.com/code-423n4/2024-08-wildcat/blob/fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1/src/WildcatArchController.sol#L268
+
+https://github.com/code-423n4/2024-08-wildcat/blob/fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1/src/WildcatArchController.sol#L319
+
+https://github.com/code-423n4/2024-08-wildcat/blob/fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1/src/WildcatArchController.sol#L370
+### Impact
+
+`getHooksTemplates`, `getMarketsForHooksTemplate`, `getRegisteredBorrowers`, `getBlacklistedAssets`, `getRegisteredControllerFactories`, `getRegisteredControllers` and `getRegisteredMarkets` all follow the same pattern.
+
+```solidity
+  function getXXXX(
+    uint256 start,
+    uint256 end
+  ) external view returns (address[] memory arr) {
+    uint256 len = XXXX.length();
+    end = MathUtils.min(end, len);
+    uint256 count = end - start;
+    arr = new address[](count);
+    for (uint256 i = 0; i < count; i++) {
+      arr[i] = XXXX.at(start + i);
+    }
+  }
+```
+
+Because `count = end - start`, the condition `i < count` should be `i <= count` so as to include the final entry in the array. E.g to get the first 5 entries, the `start` = 0, and `end` = 4 - therefore `count` = 4; This means the new array `arr` is now made up of the 0, 1, 2, 3th elements because of the condition.
+
+Recommend getting using the `i <= count` logic instead.
+
+***
+
+## Confusing ERC20 queries `balanceOf` and `totalSupply`
+
+* Lines of code
+
+https://github.com/code-423n4/2024-08-wildcat/blob/fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1/src/market/WildcatMarketToken.sol#L17-L27
+
+### Impact
+
+The WildcatMarketToken.sol contract utilizes the standard ERC20 functions, `balanceOf` and `totalSupply`. However, these functions provide the balance of the underlying tokens rather than the market tokens. This mismatch between the function names and their true functionality may cause confusion or complications when interfacing with other protocols.
+
+```solidity
+  function balanceOf(address account) public view virtual nonReentrantView returns (uint256) {
+    return
+      _calculateCurrentStatePointers.asReturnsMarketState()().normalizeAmount(
+        _accounts[account].scaledBalance
+      );
+  }
+
+  /// @notice Returns the normalized total supply with interest.
+  function totalSupply() external view virtual nonReentrantView returns (uint256) {
+    return _calculateCurrentStatePointers.asReturnsMarketState()().totalSupply();
+  }
+```
+
+Recommend renaming the current functions to balanceOfScaled and totalScaledSupply. Additionally, new implementations of balanceOf and totalSupply should be created to accurately reflect the balance of the market token
+
+
+
+***
+
+## Limit to maximum amount that can be borrowed due to scaled amounts being limited to `type(uint104).max`
+
+* Lines of code
+
+https://github.com/code-423n4/2024-08-wildcat/blob/fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1/src/libraries/MarketState.sol#L20
+
+https://github.com/code-423n4/2024-08-wildcat/blob/fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1/src/market/WildcatMarket.sol#L67
+
+### Impact
+
+According to the [README](https://github.com/code-423n4/2024-08-wildcat/blob/fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1/README.md#general-questions), the amount of assets that can be borrowed in a market should be up to type(uint128).max. But the `scaledAmount`, `scaledTotalSupply` and `scaledBalance` in use in various functions is only scaled up to a max of uint104. This limits the maximum amount that borrowers will be able to borrow especially if the assets have a max value greater than `type(uint104).max`. Recommend increasing the precision of `scaleFactor`, such as changing it to a uint128 instead.
+
+```solidity
+struct MarketState {
+//...
+  uint104 scaledTotalSupply;
+//...
+```
+
+```solidity
+struct Account {
+  uint104 scaledBalance;
+}
+```
+
+```solidity
+  function _depositUpTo(
+    uint256 amount
+  ) internal virtual nonReentrant returns (uint256 /* actualAmount */) {
+//...
+    // Scale the mint amount
+    uint104 scaledAmount = state.scaleAmount(amount).toUint104();
+```
 
 ***
