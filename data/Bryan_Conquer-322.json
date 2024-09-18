@@ -1,0 +1,8 @@
+{
+  "contest": 434,
+  "handle": "Bryan_Conquer",
+  "risk": "2",
+  "title": "Unrestricted Token Transfer Vulnerability in rescueTokens Function",
+  "issueId": 322,
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/322"
+}
