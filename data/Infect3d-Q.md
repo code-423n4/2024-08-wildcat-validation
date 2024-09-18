@@ -160,3 +160,22 @@ Manual review
 
 ## Recommended Mitigation Steps
 Use an internal accounting system to ensure no poisoned funds can be dispersed through the market.
+
+
+
+# L08 - In `_getUpdateState`, the second `updateScaleFactorAndFees` for non expired batches undervaluate the protocol fees when `_processExpiredWithdrawalBatch` is called right before
+
+## Vulnerability details
+See similar finding: https://github.com/code-423n4/2023-10-wildcat-findings/issues/455
+
+Every time `_getUpdateState` is called, two fees update are computed following this scheme:
+1. if expired batches exists, compute fees for expired batch and update `lastInterestAccruedTimestamp = expiry`
+2. process expired batch, which update the `state.scaledTotalSupply` value (reducing it)
+3. compute fees from `lastInterestAccruedTimestamp` to `block.timestamp`
+
+The thing is that `updateScaleFactorAndFees` uses `state.scaledTotalSupply` [to compute the protocol fees](https://github.com/code-423n4/2024-08-wildcat/blob/main/src/libraries/FeeMath.sol#L40-L50), but as the `state.scaledTotalSupply` is reduced in step (2), the amount of fees paid for the period `block.timestamp - expiry` is computed on the `state.scaledTotalSupply` **minus what has been processed in `_processExpiredWithdrawalBatch`**, even though that the `state.scaledTotalSupply` was present in the market until `block.timestamp`.
+
+## Impact
+Wrong computation of the scale factor and fees.
+
+
