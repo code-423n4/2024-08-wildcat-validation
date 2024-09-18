@@ -1,0 +1,8 @@
+{
+  "contest": 434,
+  "handle": "eth_sol",
+  "risk": "3",
+  "title": "Missing Validation Result Handling",
+  "issueId": 311,
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/311"
+}
