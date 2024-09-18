@@ -1,0 +1,8 @@
+{
+  "contest": 434,
+  "handle": "inh3l",
+  "risk": "2",
+  "title": "Market cannot be deployed seperate from hook deployment",
+  "issueId": 228,
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/228"
+}
