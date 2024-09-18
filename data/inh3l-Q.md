@@ -1,3 +1,50 @@
+## No access control on `executeWithdrawal` and `executeWithdrawals`
+
+* Lines of code
+
+https://github.com/code-423n4/2024-08-wildcat/blob/fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1/src/market/WildcatMarketWithdrawals.sol#L194
+
+https://github.com/code-423n4/2024-08-wildcat/blob/fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1/src/market/WildcatMarketWithdrawals.sol#L212
+
+### Impact
+
+`executeWithdrawal` and `executeWithdrawals`  allows anyone to execute withdrawal on behalf of other lenders. However, the lender at the time might not need or want the tokens withdrawn. For instance, a compromised address or wallet. So executing the withdrawal on their behalf may lead to potential fund loss.
+```solidity
+  function executeWithdrawal(
+    address accountAddress,
+    uint32 expiry
+  ) public nonReentrant sphereXGuardExternal returns (uint256) {
+```
+
+```solidity
+  function executeWithdrawals(
+    address[] calldata accountAddresses,
+    uint32[] calldata expiries
+  ) external nonReentrant sphereXGuardExternal returns (uint256[] memory amounts) {
+```
+
+Recommend allowing users to execute withdrawals for themselves. 
+
+
+***
+
+## Sanction Overrides may are ineffective if the underlying asset also relies on chainalysis
+
+* Lines of code
+https://github.com/code-423n4/2024-08-wildcat/blob/fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1/src/WildcatSanctionsEscrow.sol#L34
+
+### Impact
+
+To [release escrow](https://github.com/code-423n4/2024-08-wildcat/blob/fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1/src/WildcatSanctionsEscrow.sol#L34), the account must no longer be sanctioned by chainalysis, or must have had their sanction overridden. 
+```solidity
+  function canReleaseEscrow() public view override returns (bool) {
+    return !IWildcatSanctionsSentinel(sentinel).isSanctioned(borrower, account);
+  }
+```
+However, some tokens outright rely on chainalysis oracle for their transfer action. An example is ondo's [USDY](https://etherscan.io/address/0xea0f7eebdc2ae40edfe33bf03d332f8a7f617528#code#F1#L95) which ensures that tokens cannot be transferred if the caller, receiver or sender is sanctioned by chainalysis. This renders sanction override useless, especially if the escrow address related to the account is also sanctioned by the chainalysis dossing protocol operations for the users.
+
+
+***
 
 ## WildcatMarketToken may not need approval from owner to perform transferFrom
 
