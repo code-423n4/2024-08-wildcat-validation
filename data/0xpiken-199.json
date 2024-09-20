@@ -4,5 +4,7 @@
   "risk": "2",
   "title": "`HooksFactory#deployMarket()` doesn't check whether the specified `hooksTemplate` is disabled ",
   "issueId": 199,
-  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/199"
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/199",
+  "validatedIssueId": 91,
+  "validatedIssueUrl": "https://github.com/code-423n4/2024-08-wildcat-findings/issues/91"
 }
