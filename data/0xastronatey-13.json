@@ -4,5 +4,7 @@
   "risk": "3",
   "title": "Sanctioned Addresses Can Repay and Modify Market State in WildcatMarketWithdrawals",
   "issueId": 13,
-  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/13"
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/13",
+  "validatedIssueId": 69,
+  "validatedIssueUrl": "https://github.com/code-423n4/2024-08-wildcat-findings/issues/69"
 }
