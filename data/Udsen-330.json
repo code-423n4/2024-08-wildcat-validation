@@ -4,5 +4,7 @@
   "risk": "2",
   "title": "Invalid `hooks templates` could be used for market deployments in the `HooksFactory.deployMarket` function",
   "issueId": 330,
-  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/330"
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/330",
+  "validatedIssueId": 71,
+  "validatedIssueUrl": "https://github.com/code-423n4/2024-08-wildcat-findings/issues/71"
 }
