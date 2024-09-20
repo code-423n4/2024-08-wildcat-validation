@@ -4,5 +4,7 @@
   "risk": "3",
   "title": "Borrower can lock `lender` funds in `market` via `WildcatMarket::closeMarket`",
   "issueId": 109,
-  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/109"
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/109",
+  "validatedIssueId": 101,
+  "validatedIssueUrl": "https://github.com/code-423n4/2024-08-wildcat-findings/issues/101"
 }
