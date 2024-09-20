@@ -4,5 +4,7 @@
   "risk": "2",
   "title": "Sanctioned Addresses Can Bypass Checks Due to Incorrect Assembly Code",
   "issueId": 246,
-  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/246"
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/246",
+  "validatedIssueId": 37,
+  "validatedIssueUrl": "https://github.com/code-423n4/2024-08-wildcat-findings/issues/37"
 }
