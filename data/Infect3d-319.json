@@ -4,5 +4,7 @@
   "risk": "2",
   "title": "Market using `stETH` might still be delinquent after `repayDeliquentDebt`",
   "issueId": 319,
-  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/319"
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/319",
+  "validatedIssueId": 25,
+  "validatedIssueUrl": "https://github.com/code-423n4/2024-08-wildcat-findings/issues/25"
 }
