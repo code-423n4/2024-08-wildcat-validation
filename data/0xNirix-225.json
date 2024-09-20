@@ -4,5 +4,7 @@
   "risk": "2",
   "title": "Lenders' funds is locked without interest in prematurely closed fixed-term loan markets",
   "issueId": 225,
-  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/225"
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/225",
+  "validatedIssueId": 87,
+  "validatedIssueUrl": "https://github.com/code-423n4/2024-08-wildcat-findings/issues/87"
 }
