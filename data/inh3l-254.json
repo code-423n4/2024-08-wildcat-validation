@@ -4,5 +4,7 @@
   "risk": "2",
   "title": "Hook deployment is vulnerable to reorg situations ",
   "issueId": 254,
-  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/254"
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/254",
+  "validatedIssueId": 36,
+  "validatedIssueUrl": "https://github.com/code-423n4/2024-08-wildcat-findings/issues/36"
 }
