@@ -4,5 +4,7 @@
   "risk": "3",
   "title": "`SphereXConfig::constructor` argument `engine` set as `0` in `WildcatArchController::constructor` will prevent key `WildcatArchController` functions from from executing",
   "issueId": 138,
-  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/138"
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/138",
+  "validatedIssueId": 58,
+  "validatedIssueUrl": "https://github.com/code-423n4/2024-08-wildcat-findings/issues/58"
 }
