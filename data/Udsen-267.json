@@ -4,5 +4,7 @@
   "risk": "2",
   "title": "Lack of validation of the `FixedTermLoanHooks.setFixedTermEndTime` function can lead to unintended behaviour",
   "issueId": 267,
-  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/267"
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/267",
+  "validatedIssueId": 33,
+  "validatedIssueUrl": "https://github.com/code-423n4/2024-08-wildcat-findings/issues/33"
 }
