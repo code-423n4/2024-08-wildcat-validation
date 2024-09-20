@@ -4,5 +4,7 @@
   "risk": "2",
   "title": "Block reorg can cause unexpected behaviour during deployment of WildcatMarkets which could lead to broken functionality of the protocol",
   "issueId": 277,
-  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/277"
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/277",
+  "validatedIssueId": 79,
+  "validatedIssueUrl": "https://github.com/code-423n4/2024-08-wildcat-findings/issues/79"
 }
