@@ -4,5 +4,7 @@
   "risk": "2",
   "title": "`onExecuteWithdrawal` hook uses an incorrect function signature definition",
   "issueId": 240,
-  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/240"
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/240",
+  "validatedIssueId": 38,
+  "validatedIssueUrl": "https://github.com/code-423n4/2024-08-wildcat-findings/issues/38"
 }
