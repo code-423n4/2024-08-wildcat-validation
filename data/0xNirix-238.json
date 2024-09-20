@@ -4,5 +4,7 @@
   "risk": "2",
   "title": "Borrower Can Permanently Invalidate Push Provider Credentials Through Block/Unblock Actions",
   "issueId": 238,
-  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/238"
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/238",
+  "validatedIssueId": 39,
+  "validatedIssueUrl": "https://github.com/code-423n4/2024-08-wildcat-findings/issues/39"
 }
