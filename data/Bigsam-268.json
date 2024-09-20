@@ -4,5 +4,7 @@
   "risk": "2",
   "title": "Borrower can UNSET A USER'S CREDENTIAL by Blocking the user instead of just preventing deposits, while the unblocking function if called will not return back the User's Revoked Role.",
   "issueId": 268,
-  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/268"
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/268",
+  "validatedIssueId": 81,
+  "validatedIssueUrl": "https://github.com/code-423n4/2024-08-wildcat-findings/issues/81"
 }
