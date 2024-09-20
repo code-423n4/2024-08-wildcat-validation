@@ -4,5 +4,7 @@
   "risk": "Q",
   "title": "QA Report",
   "issueId": 196,
-  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/196"
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/196",
+  "validatedIssueId": 118,
+  "validatedIssueUrl": "https://github.com/code-423n4/2024-08-wildcat-findings/issues/118"
 }
