@@ -4,5 +4,7 @@
   "risk": "2",
   "title": "FixedTermLoanHooks Allows Borrower to Increase Loan Term",
   "issueId": 297,
-  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/297"
+  "issueUrl": "https://github.com/code-423n4/2024-08-wildcat-validation/issues/297",
+  "validatedIssueId": 27,
+  "validatedIssueUrl": "https://github.com/code-423n4/2024-08-wildcat-findings/issues/27"
 }
